@@ -454,6 +454,56 @@ def test_quadtree_point_in_polygon_small(dtype):
         ),
     )
 
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def test_point_in_polygon_quadtree_small(dtype):
+    x_min = 0
+    x_max = 8
+    y_min = 0
+    y_max = 8
+    scale = 1
+    max_depth = 3
+    min_size = 12
+    points_x = small_points_x.astype(dtype)
+    points_y = small_points_y.astype(dtype)
+    poly_points_x = small_poly_xs.astype(dtype)
+    poly_points_y = small_poly_ys.astype(dtype)
+    pickups = points_in_polygon(points_x, points_y, small_poly_offsets, small_ring_offsets, poly_points_x, poly_points_y)
+    assert_eq(
+        polygons_and_points,
+        cudf.DataFrame(
+            {
+                "polygon_index": cudf.Series(
+                    [0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3],
+                    dtype=np.uint32,
+                ),
+                "point_index": cudf.Series(
+                    [
+                        62,
+                        60,
+                        45,
+                        46,
+                        47,
+                        48,
+                        49,
+                        50,
+                        51,
+                        52,
+                        54,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                    ],
+                    dtype=np.uint32,
+                ),
+            }
+        ),
+    )
+
 
 def run_test_quadtree_point_to_nearest_polyline_small(
     dtype, expected_distances

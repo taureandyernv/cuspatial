@@ -23,7 +23,7 @@ from cuspatial.utils import gis_utils
 from cuspatial.utils.column_utils import normalize_point_columns
 
 
-def directed_hausdorff_distance(xs, ys, space_offsets):
+def directed_hausdorff_distance(xs, ys, points_per_space):
     """Compute the directed Hausdorff distances between all pairs of
     spaces.
 
@@ -33,8 +33,8 @@ def directed_hausdorff_distance(xs, ys, space_offsets):
         column of x-coordinates
     ys
         column of y-coordinates
-    space_offsets
-        beginning index of each space, plus the last space's end offset.
+    points_per_space
+        number of points in each space
 
     Returns
     -------
@@ -74,7 +74,7 @@ def directed_hausdorff_distance(xs, ys, space_offsets):
     >>> result = cuspatial.directed_hausdorff_distance(
             [0, 1, 0, 0], # xs
             [0, 0, 1, 2], # ys
-            [0, 2, 4],    # space_offsets
+            [2,    2],    # points_per_space
         )
     >>> print(result)
              0         1
@@ -82,16 +82,16 @@ def directed_hausdorff_distance(xs, ys, space_offsets):
         1  2.0  0.000000
     """
 
-    num_spaces = len(space_offsets)
+    num_spaces = len(points_per_space)
     if num_spaces == 0:
         return DataFrame()
     xs, ys = normalize_point_columns(as_column(xs), as_column(ys))
     result = cpp_directed_hausdorff_distance(
-        xs, ys, as_column(space_offsets, dtype="int32"),
+        xs, ys, as_column(points_per_space, dtype="int32"),
     )
     result = result.data_array_view
     result = result.reshape(num_spaces, num_spaces)
-    return DataFrame(result)
+    return DataFrame.from_gpu_matrix(result)
 
 
 def haversine_distance(p1_lon, p1_lat, p2_lon, p2_lat):
@@ -157,7 +157,7 @@ def lonlat_to_cartesian(origin_lon, origin_lat, input_lon, input_lat):
     )
     return DataFrame({"x": result[0], "y": result[1]})
 
-
+@deprecated(version='0.19', reason="Use new `point_in_polygon_qt` instead.  Will replace `point_in_polygon` in future update") 
 def point_in_polygon(
     test_points_x,
     test_points_y,
@@ -171,6 +171,12 @@ def point_in_polygon(
     closed polygons: the first and last coordinate of each polygon must be
     the same.
 
+	The layout follows https://www.esri.com/library/whitepapers/pdfs/shapefile.pdf.  
+	It roughly is equivalent to a List of Lists of points:
+	- poly_offsets are the start positions of elements in ring_offsets
+	- ring_offsets are start positions of elements in poly_point_x and poly_point_y
+	If the polygons are not closed (as in the example), the start point is assumed to be the closing end point.
+	
     Parameters
     ----------
     test_points_x
@@ -214,7 +220,7 @@ def point_in_polygon(
     note
     input Series x and y will not be index aligned, but computed as
     sequential arrays.
-
+	
     Returns
     -------
     result : cudf.DataFrame
@@ -249,11 +255,57 @@ def point_in_polygon(
     result = gis_utils.pip_bitmap_column_to_binary_array(
         polygon_bitmap_column=result, width=len(poly_offsets)
     )
-    result = DataFrame(result)
+    result = DataFrame.from_gpu_matrix(result)
     result = result._apply_support_method("astype", dtype="bool")
     result.columns = [x for x in list(reversed(poly_offsets.index))]
     result = result[list(reversed(result.columns))]
     return result
+
+
+def points_in_polygon_qt(x,
+                      y,
+                      polygons,
+                      rings,
+                      poly_x,
+                      poly_y,
+                      x_min = None,
+                      x_max = None,
+                      y_min = None,
+                      y_max  = None,
+                      scale = 41,
+                      max_depth = 3,
+                      min_size = 12,
+                      expansion_radius = 200.0):
+    
+    # add missing bounding box parameters if one is not defined
+    if x_min is None:
+        x_min = x.min()
+    if x_max is None:
+        x_max = x.max()
+    if y_min is None:
+        y_min = y.min()
+    if y_max is None:
+        y_max = y.max()
+
+    # Send to get_quadtree_point_in_polygon for processing
+    # Will be a cuspatial function, as in comment
+    polygons_and_points = get_quadtree_point_in_polygon( #cuspatial.get_quadtree_point_in_polygon(
+        x,
+        y,
+        polygons,
+        rings,
+        poly_x,
+        poly_y,
+        x_min,
+        x_max,
+        y_min,
+        y_max,
+        scale,
+        max_depth,
+        min_size,
+        expansion_radius
+    )
+    return polygons_and_points
 
 
 def polygon_bounding_boxes(poly_offsets, ring_offsets, xs, ys):

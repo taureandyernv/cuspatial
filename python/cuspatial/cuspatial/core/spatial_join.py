@@ -231,3 +231,57 @@ def quadtree_point_to_nearest_polyline(
             poly_points_y,
         )
     )
+
+
+def get_quadtree_point_in_polygon(x,
+                                  y,
+                                  polygons,
+                                  rings,
+                                  poly_x,
+                                  poly_y,
+                                  x_min,
+                                  x_max,
+                                  y_min,
+                                  y_max,
+                                  scale,
+                                  max_depth,
+                                  min_size,
+                                  expansion_radius):
+    point_indices, quadtree = cuspatial.quadtree_on_points(x,
+                                                           y,
+                                                           x_min,
+                                                           x_max,
+                                                           y_min,
+                                                           y_max,
+                                                           scale,
+                                                           max_depth,
+                                                           min_size)
+    poly_bboxes = cuspatial.polygon_bounding_boxes(
+        polygons,
+        rings,
+        poly_x,
+        poly_y
+    )
+    intersections = join_quadtree_and_bounding_boxes(
+        quadtree, poly_bboxes, x_min, x_max, y_min, y_max, scale, max_depth
+    )
+    polygons_and_points = quadtree_point_in_polygon(
+        intersections,
+        quadtree,
+        point_indices,
+        x,
+        y,
+        polygons,
+        rings,
+        poly_x,
+        poly_y
+    )
+    # map (point_indices) is the original length
+    # apply map here, including creating new rows for the
+    # indices that were "exterior"
+    
+    new_index = point_indices[polygons_and_points['point_index']].reset_index(drop=True)
+    swap_index = new_index.reset_index().set_index(new_index)['index']
+    polygons_and_points['source_index'] = new_index
+    
+    return polygons_and_points
