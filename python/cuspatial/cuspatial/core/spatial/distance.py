@@ -109,6 +109,48 @@ def haversine_distance(p1: GeoSeries, p2: GeoSeries):
     -------
     result : cudf.Series
         The distance between pairs of points between `p1` and `p2`
+    Examples
+    --------
+    You can calculate the Haversine Distance from a cuDF dataframe or from a GeoSeries list of points
+    
+    >>> import cudf
+    >>> import cuspatial
+    >>> a = {"latitude":[17.1167, 17.1333, 25.333, 25.255, 24.433, 24.262, 35.317, 34.21, 34.566, 31.5, 36.7167, 30.5667, 28.05, 22.8, 35.7297, 36.97, 36.78, 36.8, 36.8, 36.72],
+         "longitude": [-61.7833, -61.7833, 55.517, 55.364, 54.651, 55.609, 69.017, 62.228, 69.212, 65.85, 3.25, 2.8667, 9.6331, 5.4331, 0.65, 7.79, 3.07, 3.03, 3.04, 4.05]}
+    >>> df = cudf.DataFrame(data=a)
+    
+    >>> # Create cuSpatial GeoSeries from cuDF Dataframe
+    >>> cuGeoSeries = cuspatial.GeoSeries.from_points_xy(df[['longitude', 'latitude']].interleave_columns())
+    
+    >>> # Create Comparator cuSpatial GeoSeries from a comparator point
+    >>> df['atlanta_lat'] = 33.7490
+    >>> df['atlanta_lng'] = -84.3880
+    >>> atlGeoSeries = cuspatial.GeoSeries.from_points_xy(df[['atlanta_lat', 'atlanta_lng']].interleave_columns())
+    
+    >>> # Calculate Haversine Distance of cuDF dataframe to comparator point
+    >>> df['atlanta_dist'] = cuspatial.haversine_distance(cuGeoSeries, atlGeoSeries)
+    >>> print(df)
+        latitude  longitude  atlanta_lat  atlanta_lng  atlanta_dist
+    0    17.1167   -61.7833       33.749      -84.388  11961.556540
+    1    17.1333   -61.7833       33.749      -84.388  11963.392729
+    2    25.3330    55.5170       33.749      -84.388  12243.126130
+    3    25.2550    55.3640       33.749      -84.388  12233.867463
+    4    24.4330    54.6510       33.749      -84.388  12139.822218
+    5    24.2620    55.6090       33.749      -84.388  12124.483127
+    6    35.3170    69.0170       33.749      -84.388  13418.538383
+    7    34.2100    62.2280       33.749      -84.388  13258.725239
+    8    34.5660    69.2120       33.749      -84.388  13336.375942
+    9    31.5000    65.8500       33.749      -84.388  12976.749248
+    10   36.7167     3.2500       33.749      -84.388  13547.245294
+    11   30.5667     2.8667       33.749      -84.388  12866.528267
+    12   28.0500     9.6331       33.749      -84.388  12554.544289
+    13   22.8000     5.4331       33.749      -84.388  11990.825098
+    14   35.7297     0.6500       33.749      -84.388  13451.775999
+    15   36.9700     7.7900       33.749      -84.388  13553.372737
+    16   36.7800     3.0700       33.749      -84.388  13555.211584
+    17   36.8000     3.0300       33.749      -84.388  13557.641136
+    18   36.8000     3.0400       33.749      -84.388  13557.588738
+    19   36.7200     4.0500       33.749      -84.388  13543.496327
     """
 
     if any([not contains_only_points(p1), not contains_only_points(p2)]):
