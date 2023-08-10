@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2023, NVIDIA CORPORATION.
+# Copyright (c) 2023, NVIDIA CORPORATION.
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -41,8 +41,8 @@ source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 master_doc = "index"
 
 # General information about the project.
-project = "cuspatial"
-copyright = "2019-2023, NVIDIA"
+project = "cuProj"
+copyright = "2023, NVIDIA"
 author = "NVIDIA"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -99,13 +99,13 @@ html_theme = "pydata_sphinx_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_static_path = []
 
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "cuspatialdoc"
+htmlhelp_basename = "cuprojdoc"
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -131,8 +131,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "cuspatial.tex",
-        "cuspatial Documentation",
+        "cuproj.tex",
+        "cuProj Documentation",
         "NVIDIA Corporation",
         "manual",
     )
@@ -143,7 +143,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "cuspatial", "cuspatial Documentation", [author], 1)]
+man_pages = [(master_doc, "cuproj", "cuProj Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -154,10 +154,10 @@ man_pages = [(master_doc, "cuspatial", "cuspatial Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "cuspatial",
-        "cuspatial Documentation",
+        "cuProj",
+        "cuProj Documentation",
         author,
-        "cuspatial",
+        "cuProj",
         "One line description of project.",
         "Miscellaneous",
     )
@@ -167,9 +167,6 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-    "geopandas": ("https://geopandas.readthedocs.io/en/latest/", None),
-    "cudf": ("https://docs.rapids.ai/api/cudf/stable/", None),
 }
 
 # Config numpydoc
