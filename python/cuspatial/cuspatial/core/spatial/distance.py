@@ -111,7 +111,7 @@ def haversine_distance(p1: GeoSeries, p2: GeoSeries):
         The distance between pairs of points between `p1` and `p2`
     Examples
     --------
-    You can calculate the Haversine Distance from a cuDF dataframe or from a GeoSeries list of points
+    You can calculate the Haversine Distance from a cuDF dataframe.
     
     >>> import cudf
     >>> import cuspatial
